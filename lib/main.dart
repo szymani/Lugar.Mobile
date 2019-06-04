@@ -100,41 +100,48 @@ class _MyHomePageState extends State<MyHomePage> {
       currentLocation = null;
     }
     userLocation = currentLocation;
-    // var result = await get('http://10.160.41.211:5000/api/reports/add?' +
-    // 'ImageUrl=' + 'Filip' + 
-    // '&Description=' + description_text +
-    // '&Longtitude=' + userLocation["latitude"].toString() + 
-    // '&Latitude=' + userLocation["longitude"].toString() + 
-    // '&Category=' + 'no');
-
-    // var body =  '{ImageData:' + '"Filip"' + 
-    // ',Description:' + description_text +
-    // ',Longtitude:' + userLocation["latitude"].toString() + 
-    // ',Latitude:' + userLocation["longitude"].toString() + 
-    // ',Category:' + '"no"}';
-
-
     File imageFile = new File(globalpath);
     List<int> imageBytes = imageFile.readAsBytesSync();
     String base64Image = base64Encode(imageBytes);
 
     var data =  jsonEncode(
     {
-      'ImageData': "Filip",
       'Description': description_text,
       'Longtitude': userLocation["latitude"].toString(),
       'Latitude': userLocation["longitude"].toString(),
-      'Category': "no",
+      'Category': "ios",
       "imageData": base64Image,
     });
-
     var url = 'http://10.160.41.211:5000/api/reports/add';
     http.post(url,
         headers: {"Content-Type": "application/json"},
         body: data,
-    );
+    ); 
     return currentLocation;  
   }
+
+void _showDialog()
+{
+  showDialog(
+    context: context,
+   builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(""),
+          content: new Text("Thank you for your cooperation"),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            new FlatButton(
+              child: new Text("Ok"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+  );
+}
 
   // void fetchData() async {
   //   var result = await get('http://10.160.41.211:5000/api/reports/add?' +
@@ -189,15 +196,16 @@ class _MyHomePageState extends State<MyHomePage> {
               margin:EdgeInsets.all(8.0),
               child: 
                 globalpath==""
-                ? CircularProgressIndicator()
+                ? Text(
+                  'Provide photo (Optional)',
+                )
                 : Image.file(
                   
                   File(globalpath),
                   height: 200,
                   width: 150,
                   fit:BoxFit.fill
-                )
-                ,
+                ),
                 
                 
             ),            
@@ -243,6 +251,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 userLocation = value;
               });
             });
+          _showDialog();
+
             //fetchData();
             FocusScope.of(context).detach();
         } ,
