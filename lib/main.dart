@@ -49,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String loc = "";
   var location = new Location();
   Map<String, double> userLocation;
-
+  String description_text = "";
 
   void _incrementCounter() {
     setState(() {
@@ -112,11 +112,28 @@ class _MyHomePageState extends State<MyHomePage> {
                 : Text("Location:" +
                     userLocation["latitude"].toString() +
                     " " +
-                    userLocation["longitude"].toString()),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
+                    userLocation["longitude"].toString()
+                ),
+
+            TextField(
+              maxLength: 100,
+              minLines: 4,
+              maxLines: 5,
+              
+              onChanged: (text) {
+                description_text = text;
+              },
+              decoration: InputDecoration(
+                helperText: "Description",
+                border: OutlineInputBorder()
+              ),
+
             ),
+            // Text(
+            //   '$_counter',
+            //   style: Theme.of(context).textTheme.display1,
+            // ),
+            
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: RaisedButton(
