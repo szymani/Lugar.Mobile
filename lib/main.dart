@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
+import 'package:http/http.dart' show get;
+import 'package:camera/camera.dart';
+import 'package:path_provider/path_provider.dart';
+
+
 
 void main() => runApp(MyApp());
 
@@ -49,7 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String loc = "";
   var location = new Location();
   Map<String, double> userLocation;
-  String description_text = "";
+  String description_text = "...";
 
   void _incrementCounter() {
     setState(() {
@@ -70,8 +75,24 @@ class _MyHomePageState extends State<MyHomePage> {
     } catch (e) {
       currentLocation = null;
     }
-    return currentLocation;
+    userLocation = currentLocation;
+    var result = await get('http://10.160.41.211:5000/api/reports/add?' +
+    'ImageUrl=' + 'Filip' + 
+    '&Description=' + description_text +
+    '&Longtitude=' + userLocation["latitude"].toString() + 
+    '&Latitude=' + userLocation["longitude"].toString() + 
+    '&Category=' + 'no');
+    return currentLocation;  
   }
+
+  // void fetchData() async {
+  //   var result = await get('http://10.160.41.211:5000/api/reports/add?' +
+  //   'ImageUrl=' + 'Daniel' + 
+  //   '&Description=' + description_text +
+  //   '&Longtitude=' + userLocation["longitude"].toString() + 
+  //   '&Latitude=' + userLocation["longitude"].toString() + 
+  //   '&Category=' + 'garbagesadasdsad');
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -82,12 +103,16 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
+      drawer: Drawer(
+
+      ),
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
+        
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         child: Column(
@@ -110,25 +135,27 @@ class _MyHomePageState extends State<MyHomePage> {
               userLocation == null
                 ? CircularProgressIndicator()
                 : Text("Location:" +
-                    userLocation["latitude"].toString() +
+                    userLocation["longitude"].toString() +
                     " " +
-                    userLocation["longitude"].toString()
+                    userLocation["latitude"].toString()
                 ),
-
-            TextField(
+           Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: TextField(
               maxLength: 100,
               minLines: 4,
-              maxLines: 5,
-              
+              maxLines: 5,           
               onChanged: (text) {
-                description_text = text;
+                setState(() {
+                  description_text = text;
+                });
               },
               decoration: InputDecoration(
                 helperText: "Description",
-                border: OutlineInputBorder()
+                border: OutlineInputBorder(),             
               ),
-
             ),
+           ),
             // Text(
             //   '$_counter',
             //   style: Theme.of(context).textTheme.display1,
@@ -143,6 +170,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       userLocation = value;
                     });
                   });
+                  //fetchData();
+                  FocusScope.of(context).detach();
                 },
                 color: Colors.red,
                 child: Text("Send Report", style: TextStyle(color: Colors.white),),
