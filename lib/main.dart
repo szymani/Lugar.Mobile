@@ -224,16 +224,13 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(8.0),
               child: RaisedButton(
                 onPressed: () {
-                  _getLocation().then((value) {
-                    setState(() {
-                      userLocation = value;
-                    });
-                  });
-                  //fetchData();
-                  FocusScope.of(context).detach();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => TakePictureScreen(camera: camera)),
+                  );
                 },
                 color: Colors.red,
-                child: Text("Send Report", style: TextStyle(color: Colors.white),),
+                child: Text("Take a photo", style: TextStyle(color: Colors.white),),
               ),
             )
           ],
@@ -241,14 +238,17 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => TakePictureScreen(camera: camera)),
-          );
+          _getLocation().then((value) {
+              setState(() {
+                userLocation = value;
+              });
+            });
+            //fetchData();
+            FocusScope.of(context).detach();
         } ,
         tooltip: 'Add Photo',
         child: Text(
-              'Add',
+              'Send',
             ),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
