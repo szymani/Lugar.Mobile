@@ -1,15 +1,35 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
-import 'package:http/http.dart' show get;
+import 'package:http/http.dart' as http;
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' show join;
 
 
+String globalpath = "";
 
-void main() => runApp(MyApp());
+//void main() => runApp(MyApp());
+
+Future<void> main() async {
+  // Obtain a list of the available cameras on the device.
+  final cameras = await availableCameras();
+
+  // Get a specific camera from the list of available cameras
+  final firstCamera = cameras.first;
+
+  runApp(
+    MyApp(firstCamera: firstCamera),
+  );
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+  final CameraDescription firstCamera;
+  MyApp({Key key, this.firstCamera,}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -26,13 +46,14 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.red,
       ),
-      home: MyHomePage(title: 'Report New Incident'),
+      home: MyHomePage(title: 'Report New Incident', camera: firstCamera,),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  final CameraDescription camera;
+  MyHomePage({Key key, this.title, this.camera,}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -44,12 +65,15 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   final String title;
-
+  
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState(camera: camera);
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final CameraDescription camera;
+  _MyHomePageState({Key key,this.camera,});
+
   int _counter = 0;
   String loc = "";
   var location = new Location();
@@ -76,12 +100,39 @@ class _MyHomePageState extends State<MyHomePage> {
       currentLocation = null;
     }
     userLocation = currentLocation;
-    var result = await get('http://10.160.41.211:5000/api/reports/add?' +
-    'ImageUrl=' + 'Filip' + 
-    '&Description=' + description_text +
-    '&Longtitude=' + userLocation["latitude"].toString() + 
-    '&Latitude=' + userLocation["longitude"].toString() + 
-    '&Category=' + 'no');
+    // var result = await get('http://10.160.41.211:5000/api/reports/add?' +
+    // 'ImageUrl=' + 'Filip' + 
+    // '&Description=' + description_text +
+    // '&Longtitude=' + userLocation["latitude"].toString() + 
+    // '&Latitude=' + userLocation["longitude"].toString() + 
+    // '&Category=' + 'no');
+
+    // var body =  '{ImageData:' + '"Filip"' + 
+    // ',Description:' + description_text +
+    // ',Longtitude:' + userLocation["latitude"].toString() + 
+    // ',Latitude:' + userLocation["longitude"].toString() + 
+    // ',Category:' + '"no"}';
+
+
+    File imageFile = new File(globalpath);
+    List<int> imageBytes = imageFile.readAsBytesSync();
+    String base64Image = base64Encode(imageBytes);
+
+    var data =  jsonEncode(
+    {
+      'ImageData': "Filip",
+      'Description': description_text,
+      'Longtitude': userLocation["latitude"].toString(),
+      'Latitude': userLocation["longitude"].toString(),
+      'Category': "no",
+      "imageData": base64Image,
+    });
+
+    var url = 'http://10.160.41.211:5000/api/reports/add';
+    http.post(url,
+        headers: {"Content-Type": "application/json"},
+        body: data,
+    );
     return currentLocation;  
   }
 
@@ -131,20 +182,32 @@ class _MyHomePageState extends State<MyHomePage> {
           // axis because Columns are vertical (the cross axis would be
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[      
-              userLocation == null
+          children: <Widget>[   
+            
+
+            Container(
+              margin:EdgeInsets.all(8.0),
+              child: 
+                globalpath==""
                 ? CircularProgressIndicator()
-                : Text("Location:" +
-                    userLocation["longitude"].toString() +
-                    " " +
-                    userLocation["latitude"].toString()
-                ),
-           Padding(
+                : Image.file(
+                  
+                  File(globalpath),
+                  height: 200,
+                  width: 150,
+                  fit:BoxFit.fill
+                )
+                ,
+                
+                
+            ),            
+            
+            Padding(
             padding: const EdgeInsets.all(10.0),
             child: TextField(
               maxLength: 100,
-              minLines: 4,
-              maxLines: 5,           
+              minLines: 3,
+              maxLines: 3,           
               onChanged: (text) {
                 setState(() {
                   description_text = text;
@@ -156,11 +219,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
            ),
-            // Text(
-            //   '$_counter',
-            //   style: Theme.of(context).textTheme.display1,
-            // ),
-            
+
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: RaisedButton(
@@ -180,13 +239,126 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: _incrementCounter,
-      //   tooltip: 'Send Report',
-      //   child: Text(
-      //         'Send',
-      //       ),
-      //), // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => TakePictureScreen(camera: camera)),
+          );
+        } ,
+        tooltip: 'Add Photo',
+        child: Text(
+              'Add',
+            ),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+// A screen that allows users to take a picture using a given camera
+class TakePictureScreen extends StatefulWidget {
+  final CameraDescription camera;
+
+  const TakePictureScreen({
+    Key key,
+    @required this.camera,
+  }) : super(key: key);
+
+  @override
+  TakePictureScreenState createState() => TakePictureScreenState();
+}
+
+class TakePictureScreenState extends State<TakePictureScreen> {
+  CameraController _controller;
+  Future<void> _initializeControllerFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // In order to display the current output from the Camera, you need to
+    // create a CameraController.
+    _controller = CameraController(
+      // Get a specific camera from the list of available cameras
+      widget.camera,
+      // Define the resolution to use
+      ResolutionPreset.medium,
+    );
+
+    // Next, you need to initialize the controller. This returns a Future
+    _initializeControllerFuture = _controller.initialize();
+  }
+
+  @override
+  void dispose() {
+    // Make sure to dispose of the controller when the Widget is disposed
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Take a picture')),
+      // You must wait until the controller is initialized before displaying the
+      // camera preview. Use a FutureBuilder to display a loading spinner until
+      // the controller has finished initializing
+      body: FutureBuilder<void>(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            // If the Future is complete, display the preview
+            return CameraPreview(_controller);
+          } else {
+            // Otherwise, display a loading indicator
+            return Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.camera_alt),
+        // Provide an onPressed callback
+        onPressed: () async {
+          // Take the Picture in a try / catch block. If anything goes wrong,
+          // catch the error.
+          try {
+            // Ensure the camera is initialized
+            await _initializeControllerFuture;
+
+            // Construct the path where the image should be saved using the path
+            // package.
+            final path = join(
+              // In this example, store the picture in the temp directory. Find
+              // the temp directory using the `path_provider` plugin.
+              (await getTemporaryDirectory()).path,
+              '${DateTime.now()}.png',
+            );
+
+            // Attempt to take a picture and log where it's been saved
+            await _controller.takePicture(path);
+            globalpath = path;
+            // If the picture was taken, display it on a new screen
+            Navigator.pop(context);         
+          } catch (e) {
+            // If an error occurs, log the error to the console.
+            print(e);
+          }
+        },
+      ),
+    );
+  }
+}
+
+class DisplayPictureScreen extends StatelessWidget {
+  final String imagePath;
+
+  const DisplayPictureScreen({Key key, this.imagePath}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Display the Picture')),
+      // The image is stored as a file on the device. Use the `Image.file`
+      // constructor with the given path to display the image
+      body: Image.file(File(imagePath)),
     );
   }
 }
