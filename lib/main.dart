@@ -127,20 +127,20 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
                   });
                 },
-                color: Colors.blue,
-                child: Text("Get Location", style: TextStyle(color: Colors.white),),
+                color: Colors.red,
+                child: Text("Send Report", style: TextStyle(color: Colors.white),),
               ),
             )
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Send Report',
-        child: Text(
-              'Send',
-            ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _incrementCounter,
+      //   tooltip: 'Send Report',
+      //   child: Text(
+      //         'Send',
+      //       ),
+      //), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
