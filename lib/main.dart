@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' as Io;
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,11 +9,9 @@ import 'package:http/http.dart' as http;
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' show join;
-
+import 'package:image/image.dart' as img;
 
 String globalpath = "";
-
-//void main() => runApp(MyApp());
 
 Future<void> main() async {
   // Obtain a list of the available cameras on the device.
@@ -35,15 +34,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Lugar Mobile',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.red,
       ),
       home: MyHomePage(title: 'Report New Incident', camera: firstCamera,),
@@ -54,16 +44,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   final CameraDescription camera;
   MyHomePage({Key key, this.title, this.camera,}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
   
   @override
@@ -82,14 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementCounter() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
       _counter++;
-      
-      loc = " asda";
     });
   }
   Future<Map<String, double>> _getLocation() async {
@@ -100,8 +73,13 @@ class _MyHomePageState extends State<MyHomePage> {
       currentLocation = null;
     }
     userLocation = currentLocation;
-    File imageFile = new File(globalpath);
-    List<int> imageBytes = imageFile.readAsBytesSync();
+    //File imageFile = new File(globalpath);
+    // List<int> imageBytes = imageFile.readAsBytesSync();        //working but huge
+    // String base64Image = base64Encode(imageBytes);
+
+    img.Image bigImage = img.decodeImage(new Io.File(globalpath).readAsBytesSync());
+    img.Image smallImage = img.copyResize(bigImage,height: 120);
+    List<int> imageBytes = smallImage.getBytes();   
     String base64Image = base64Encode(imageBytes);
 
     var data =  jsonEncode(
@@ -142,24 +120,8 @@ void _showDialog()
       },
   );
 }
-
-  // void fetchData() async {
-  //   var result = await get('http://10.160.41.211:5000/api/reports/add?' +
-  //   'ImageUrl=' + 'Daniel' + 
-  //   '&Description=' + description_text +
-  //   '&Longtitude=' + userLocation["longitude"].toString() + 
-  //   '&Latitude=' + userLocation["longitude"].toString() + 
-  //   '&Category=' + 'garbagesadasdsad');
-  // }
-
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       drawer: Drawer(
         child: ListView(
@@ -167,10 +129,10 @@ void _showDialog()
             ListTile(
               title: Text("Start"),
               trailing: Icon(Icons.arrow_forward),
-              // onTap: ()
-              // {
-              //   Navigator.of(context).pop();
-              // }
+              onTap: ()
+              {
+                Navigator.of(context).pop();
+              }
             ),
             ListTile(
               title: Text("History"),
@@ -189,10 +151,6 @@ void _showDialog()
               trailing: Icon(Icons.arrow_forward),
             ),
             ListTile(
-              title: Text("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"),
-              //trailing: Icon(Icons.arrow_forward),
-            ),
-            ListTile(
               title: Text("About"),
               trailing: Icon(Icons.arrow_forward),
             ),
@@ -200,67 +158,45 @@ void _showDialog()
         ),
       ),
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: Center(        
         child: Column(
-          // Column is also layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[   
-            
-
-            Container(
-              margin:EdgeInsets.all(8.0),
-              child: 
-                globalpath==""
-                ? Text(
-                  'Provide photo (Optional)\n\n\n\n\n\n\n',
-                )
-                : Image.file(
-                  
-                  File(globalpath),
-                  height: 200,
-                  width: 150,
-                  fit:BoxFit.fill
-                ),           
-            ),            
-            
+            Flexible(
+              child: Container(
+                margin:EdgeInsets.all(8.0),
+                child: 
+                  globalpath==""
+                  ? Text(
+                    'Provide photo (Optional)',
+                  )
+                  : Image.file(                
+                    File(globalpath),
+                    fit:BoxFit.fill
+                  ),           
+              ), 
+            ),
+           
             Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: TextField(
-              maxLength: 100,
-              minLines: 3,
-              maxLines: 3,           
-              onChanged: (text) {
-                setState(() {
-                  description_text = text;
-                });
-              },
-              decoration: InputDecoration(
-                helperText: "Description",
-                border: OutlineInputBorder(),             
+              padding: const EdgeInsets.all(10.0),
+              child: TextField(
+                maxLength: 100,
+                minLines: 3,
+                maxLines: 3,           
+                onChanged: (text) {
+                  setState(() {
+                    description_text = text;
+                  });
+                },
+                decoration: InputDecoration(
+                  helperText: "Description",
+                  border: OutlineInputBorder(),             
+                ),
               ),
             ),
-           ),
-
+            
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: RaisedButton(
@@ -293,10 +229,13 @@ void _showDialog()
         child: Text(
               'Send',
             ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ), 
     );
   }
 }
+
+
+
 // A screen that allows users to take a picture using a given camera
 class TakePictureScreen extends StatefulWidget {
   final CameraDescription camera;
