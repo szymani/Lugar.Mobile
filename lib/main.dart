@@ -127,7 +127,7 @@ void _showDialog()
    builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text(""),
+          title: new Text("Sending complete"),
           content: new Text("Thank you for your cooperation"),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
@@ -162,7 +162,42 @@ void _showDialog()
     // than having to individually change instances of widgets.
     return Scaffold(
       drawer: Drawer(
-
+        child: ListView(
+          children: <Widget>[
+            ListTile(
+              title: Text("Start"),
+              trailing: Icon(Icons.arrow_forward),
+              // onTap: ()
+              // {
+              //   Navigator.of(context).pop();
+              // }
+            ),
+            ListTile(
+              title: Text("History"),
+              trailing: Icon(Icons.arrow_forward),
+            ),
+            ListTile(
+              title: Text("Incident map"),
+              trailing: Icon(Icons.arrow_forward),
+            ),
+            ListTile(
+              title: Text("Settings"),
+              trailing: Icon(Icons.arrow_forward),
+            ),
+            ListTile(
+              title: Text("Your Account"),
+              trailing: Icon(Icons.arrow_forward),
+            ),
+            ListTile(
+              title: Text("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"),
+              //trailing: Icon(Icons.arrow_forward),
+            ),
+            ListTile(
+              title: Text("About"),
+              trailing: Icon(Icons.arrow_forward),
+            ),
+          ],
+        ),
       ),
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -197,7 +232,7 @@ void _showDialog()
               child: 
                 globalpath==""
                 ? Text(
-                  'Provide photo (Optional)',
+                  'Provide photo (Optional)\n\n\n\n\n\n\n',
                 )
                 : Image.file(
                   
@@ -205,9 +240,7 @@ void _showDialog()
                   height: 200,
                   width: 150,
                   fit:BoxFit.fill
-                ),
-                
-                
+                ),           
             ),            
             
             Padding(
